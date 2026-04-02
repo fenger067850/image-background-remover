@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Background Remover</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="max-w-md w-full bg-white rounded-xl shadow-md p-6">
+        <h1 class="text-2xl font-bold text-center mb-6 text-gray-800">Background Remover</h1>
+        
+        <div id="drop-zone" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 transition-colors">
+            <p class="text-gray-500">Drag & Drop or Click to Upload</p>
+            <input type="file" id="file-input" class="hidden" accept="image/*">
+        </div>
+
+        <div id="preview-container" class="mt-6 hidden">
+            <p class="text-sm font-semibold text-gray-600 mb-2">Original Preview:</p>
+            <img id="original-preview" class="w-full rounded-lg border">
+            <button id="process-btn" class="w-full mt-4 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors">Remove Background</button>
+        </div>
+
+        <div id="result-container" class="mt-6 hidden">
+            <p class="text-sm font-semibold text-gray-600 mb-2">Result:</p>
+            <img id="result-image" class="w-full rounded-lg border bg-[url('https://www.transparenttextures.com/patterns/checkerboard.png')]">
+            <a id="download-link" class="block w-full mt-4 bg-green-600 text-white text-center py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors">Download PNG</a>
+        </div>
+
+        <div id="status" class="mt-4 text-center text-sm text-gray-500"></div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const previewContainer = document.getElementById('preview-container');
+        const originalPreview = document.getElementById('original-preview');
+        const processBtn = document.getElementById('process-btn');
+        const resultContainer = document.getElementById('result-container');
+        const resultImage = document.getElementById('result-image');
+        const downloadLink = document.getElementById('download-link');
+        const status = document.getElementById('status');
+
+        let currentFile = null;
+
+        dropZone.onclick = () => fileInput.click();
+        fileInput.onchange = (e) => handleFile(e.target.files[0]);
+
+        function handleFile(file) {
+            if (!file) return;
+            currentFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                originalPreview.src = e.target.result;
+                previewContainer.classList.remove('hidden');
+                resultContainer.classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        processBtn.onclick = async () => {
+            if (!currentFile) return;
+            status.innerText = "Processing... Please wait.";
+            processBtn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('image_file', currentFile);
+            formData.append('size', 'auto');
+
+            try {
+                // 请将此 URL 替换为您部署后的 Cloudflare Worker URL
+                const WORKER_URL = "https://your-worker-subdomain.workers.dev"; 
+                const response = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) throw new Error(await response.text());
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                resultImage.src = url;
+                downloadLink.href = url;
+                downloadLink.download = "no-bg.png";
+                
+                resultContainer.classList.remove('hidden');
+                status.innerText = "Success!";
+            } catch (err) {
+                status.innerText = "Error: " + err.message;
+                console.error(err);
+            } finally {
+                processBtn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>
