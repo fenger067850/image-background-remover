@@ -5,29 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Background Remover</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .glass-effect { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
-    <div class="max-w-md w-full bg-white rounded-xl shadow-md p-6">
-        <h1 class="text-2xl font-bold text-center mb-6 text-gray-800">Background Remover</h1>
+<body class="gradient-bg min-h-screen flex flex-col items-center justify-center p-4 text-gray-800">
+    <div class="max-w-2xl w-full glass-effect rounded-3xl shadow-2xl p-8 border border-white/20">
+        <h1 class="text-3xl font-extrabold text-center mb-2 text-gray-900 tracking-tight">Background Remover</h1>
+        <p class="text-center text-gray-600 mb-8 font-medium">Clear your image background in seconds.</p>
         
-        <div id="drop-zone" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 transition-colors">
-            <p class="text-gray-500">Drag & Drop or Click to Upload</p>
+        <div id="drop-zone" class="border-2 border-dashed border-indigo-300 rounded-2xl p-12 text-center cursor-pointer hover:bg-white/50 hover:border-indigo-500 transition-all duration-300 group">
+            <svg class="mx-auto h-12 w-12 text-indigo-400 group-hover:text-indigo-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+            <p class="mt-4 text-gray-600 group-hover:text-gray-900 font-semibold">Drop image here or click to browse</p>
+            <p class="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB</p>
             <input type="file" id="file-input" class="hidden" accept="image/*">
         </div>
 
-        <div id="preview-container" class="mt-6 hidden">
-            <p class="text-sm font-semibold text-gray-600 mb-2">Original Preview:</p>
-            <img id="original-preview" class="w-full rounded-lg border">
-            <button id="process-btn" class="w-full mt-4 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors">Remove Background</button>
+        <div id="preview-container" class="mt-8 hidden grid md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+                <p class="text-xs font-bold uppercase tracking-widest text-gray-500">Original</p>
+                <img id="original-preview" class="w-full rounded-xl border border-gray-200 shadow-sm">
+            </div>
+            <div class="flex items-center justify-center">
+                <button id="process-btn" class="bg-indigo-600 text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-indigo-700 hover:scale-105 transition-all active:scale-95 disabled:opacity-50">Remove BG</button>
+            </div>
         </div>
 
-        <div id="result-container" class="mt-6 hidden">
-            <p class="text-sm font-semibold text-gray-600 mb-2">Result:</p>
-            <img id="result-image" class="w-full rounded-lg border bg-[url('https://www.transparenttextures.com/patterns/checkerboard.png')]">
-            <a id="download-link" class="block w-full mt-4 bg-green-600 text-white text-center py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors">Download PNG</a>
+        <div id="result-container" class="mt-8 pt-8 border-t border-gray-200 hidden">
+            <p class="text-xs font-bold uppercase tracking-widest text-gray-500 mb-4">Result</p>
+            <img id="result-image" class="w-full rounded-xl border border-gray-200 shadow-lg bg-[url('https://www.transparenttextures.com/patterns/checkerboard.png')]">
+            <a id="download-link" class="block w-full mt-6 bg-emerald-500 text-white text-center py-3 rounded-full font-bold shadow-lg hover:bg-emerald-600 hover:scale-[1.02] transition-all">Download PNG</a>
         </div>
 
-        <div id="status" class="mt-4 text-center text-sm text-gray-500"></div>
+        <div id="status" class="mt-6 text-center text-sm font-medium text-indigo-900/70"></div>
     </div>
 
     <script>
@@ -69,7 +80,7 @@
 
             try {
                 // 请将此 URL 替换为您部署后的 Cloudflare Worker URL
-                const WORKER_URL = "https://your-worker-subdomain.workers.dev"; 
+                const WORKER_URL = "https://image-bg-remover-api.fenger067850.workers.dev"; 
                 const response = await fetch(WORKER_URL, {
                     method: 'POST',
                     body: formData
